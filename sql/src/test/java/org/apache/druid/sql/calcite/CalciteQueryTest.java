@@ -18858,4 +18858,35 @@ public class CalciteQueryTest extends BaseCalciteQueryTest
         ImmutableList.of()
     );
   }
+
+  @Test
+  public void testTimeseriesQueryWithEmptyInlineDatasourceAndGranularity()
+  {
+    // the SQL query contains an always FALSE filter ('bar' = 'baz'), which optimizes the query to also remove time
+    // filter. the converted query hence contains ETERNITY interval but still a MONTH granularity due to the grouping.
+    // Such a query should fail since it will create a huge amount of time grains which can lead to OOM or a very very
+    // high query time.
+    Assert.assertThrows(IAE.class, () ->
+        testQuery(
+            "SELECT TIME_FLOOR(__time, 'P1m'), max(m1) from \"foo\"\n"
+            + "WHERE __time > CURRENT_TIMESTAMP - INTERVAL '3' MONTH  AND 'bar'='baz'\n"
+            + "GROUP BY 1\n"
+            + "ORDER BY 1 DESC",
+            ImmutableList.of(
+                Druids.newTimeseriesQueryBuilder()
+                      .dataSource(
+                          InlineDataSource.fromIterable(
+                              ImmutableList.of(),
+                              RowSignature.builder().addTimeColumn().add("m1", ColumnType.STRING).build()
+                          ))
+                      .intervals(ImmutableList.of(Intervals.ETERNITY))
+                      .descending(true)
+                      .granularity(Granularities.MONTH)
+                      .aggregators(new LongMaxAggregatorFactory("a0", "m1"))
+                      .build()
+            ),
+            ImmutableList.of()
+        )
+    );
+  }
 }
