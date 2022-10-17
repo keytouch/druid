@@ -400,6 +400,7 @@ public class GroupByQueryRunnerTest extends InitializedNullHandlingTest
             configSupplier,
             bufferPool,
             mergeBufferPool,
+            TestHelper.makeJsonMapper(),
             mapper,
             QueryRunnerTestHelper.NOOP_QUERYWATCHER
         )

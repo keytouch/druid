@@ -75,6 +75,7 @@ import org.apache.druid.segment.IndexSpec;
 import org.apache.druid.segment.QueryableIndex;
 import org.apache.druid.segment.QueryableIndexSegment;
 import org.apache.druid.segment.Segment;
+import org.apache.druid.segment.TestHelper;
 import org.apache.druid.segment.column.ColumnConfig;
 import org.apache.druid.segment.column.ColumnHolder;
 import org.apache.druid.segment.column.ValueType;
@@ -615,6 +616,7 @@ public class GroupByLimitPushDownMultiNodeMergeTest
             configSupplier,
             bufferPool,
             mergePool,
+            TestHelper.makeJsonMapper(),
             new ObjectMapper(new SmileFactory()),
             NOOP_QUERYWATCHER
         )
@@ -633,6 +635,7 @@ public class GroupByLimitPushDownMultiNodeMergeTest
             configSupplier,
             bufferPool,
             mergePool2,
+            TestHelper.makeJsonMapper(),
             new ObjectMapper(new SmileFactory()),
             NOOP_QUERYWATCHER
         )

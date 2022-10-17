@@ -50,7 +50,6 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(JUnitParamsRunner.class)
@@ -542,10 +541,6 @@ public class CalciteCorrelatedQueryTest extends BaseCalciteQueryTest
       Granularity granularity
   )
   {
-    Map<String, Object> output = new HashMap<>(input);
-    output.put(GroupByQuery.CTX_TIMESTAMP_RESULT_FIELD, timestampResultField);
-    output.put(GroupByQuery.CTX_TIMESTAMP_RESULT_FIELD_GRANULARITY, granularity);
-    output.put(GroupByQuery.CTX_TIMESTAMP_RESULT_FIELD_INDEX, 0);
-    return output;
+    return withTimestampResultContext(input, timestampResultField, 0, granularity);
   }
 }

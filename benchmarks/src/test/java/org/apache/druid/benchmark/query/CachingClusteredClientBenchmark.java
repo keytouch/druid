@@ -380,6 +380,7 @@ public class CachingClusteredClientBenchmark
             bufferPool,
             mergeBufferPool,
             mapper,
+            mapper,
             QueryRunnerTestHelper.NOOP_QUERYWATCHER
         )
     );
