@@ -19,6 +19,7 @@
 
 package org.apache.druid.sql.calcite.planner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -64,6 +65,7 @@ public class PlannerContext
   // DataContext keys
   public static final String DATA_CTX_AUTHENTICATION_RESULT = "authenticationResult";
 
+  private final ObjectMapper jsonMapper;
   private final DruidOperatorTable operatorTable;
   private final ExprMacroTable macroTable;
   private final PlannerConfig plannerConfig;
@@ -82,6 +84,7 @@ public class PlannerContext
   private Access authorizationResult;
 
   private PlannerContext(
+      final ObjectMapper jsonMapper,
       final DruidOperatorTable operatorTable,
       final ExprMacroTable macroTable,
       final PlannerConfig plannerConfig,
@@ -90,6 +93,7 @@ public class PlannerContext
       final Map<String, Object> queryContext
   )
   {
+    this.jsonMapper = jsonMapper;
     this.operatorTable = operatorTable;
     this.macroTable = macroTable;
     this.plannerConfig = Preconditions.checkNotNull(plannerConfig, "plannerConfig");
@@ -106,6 +110,7 @@ public class PlannerContext
   }
 
   public static PlannerContext create(
+      final ObjectMapper jsonMapper,
       final DruidOperatorTable operatorTable,
       final ExprMacroTable macroTable,
       final PlannerConfig plannerConfig,
@@ -145,6 +150,7 @@ public class PlannerContext
     }
 
     return new PlannerContext(
+        jsonMapper,
         operatorTable,
         macroTable,
         plannerConfig.withOverrides(queryContext),
@@ -162,6 +168,11 @@ public class PlannerContext
   public ExprMacroTable getExprMacroTable()
   {
     return macroTable;
+  }
+
+  public ObjectMapper getJsonMapper()
+  {
+    return jsonMapper;
   }
 
   public PlannerConfig getPlannerConfig()

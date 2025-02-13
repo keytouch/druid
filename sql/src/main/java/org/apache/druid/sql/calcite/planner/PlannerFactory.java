@@ -97,6 +97,7 @@ public class PlannerFactory
   public DruidPlanner createPlanner(final Map<String, Object> queryContext)
   {
     final PlannerContext plannerContext = PlannerContext.create(
+        jsonMapper,
         operatorTable,
         macroTable,
         plannerConfig,
