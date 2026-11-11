@@ -1072,8 +1072,7 @@ public abstract class SQLMetadataConnector implements MetadataStorageConnector
       final List<String> columns = new ArrayList<>();
       if (tableExists(handle, tableName)) {
         final Connection conn = handle.getConnection();
-        final String schema = getMetadataTableSchema(conn);
-        try (ResultSet rs = conn.getMetaData().getColumns(null, schema, null, null)) {
+        try (ResultSet rs = conn.getMetaData().getColumns(conn.getCatalog(), conn.getSchema(), null, null)) {
           while (rs.next()) {
             if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))
                 && (schema == null || schema.equals(rs.getString("TABLE_SCHEM")))) {
@@ -1084,20 +1083,6 @@ public abstract class SQLMetadataConnector implements MetadataStorageConnector
       }
       return columns;
     });
-  }
-
-  /**
-   * Returns the schema that the Druid metadata tables live in, i.e. the schema that an unqualified
-   * table name in a Druid SQL statement resolves to, or null if the schema is unknown and lookups
-   * should not be scoped to a schema.
-   *
-   * Connectors that scope {@link #tableExists} to a configured schema must override this so that
-   * both lookups agree.
-   */
-  @Nullable
-  public String getMetadataTableSchema(final Connection connection) throws SQLException
-  {
-    return connection.getSchema();
   }
 
   @Override
@@ -1227,9 +1212,10 @@ public abstract class SQLMetadataConnector implements MetadataStorageConnector
         @Override
         public Void withHandle(Handle handle) throws Exception
         {
-          DatabaseMetaData databaseMetaData = handle.getConnection().getMetaData();
+          final Connection conn = handle.getConnection();
+          final DatabaseMetaData databaseMetaData = conn.getMetaData();
           // Fetch the index for given table
-          ResultSet resultSet = getIndexInfo(databaseMetaData, tableName);
+          ResultSet resultSet = databaseMetaData.getIndexInfo(conn.getCatalog(), conn.getSchema(), tableName, false, false);
           while (resultSet.next()) {
             String indexName = resultSet.getString("INDEX_NAME");
             if (org.apache.commons.lang3.StringUtils.isNotBlank(indexName)) {
@@ -1244,24 +1230,6 @@ public abstract class SQLMetadataConnector implements MetadataStorageConnector
       log.error(e, "Exception while listing the index on table %s ", tableName);
     }
     return ImmutableSet.copyOf(res);
-  }
-
-  /**
-   * Get the ResultSet for indexInfo for given table
-   *
-   * @param databaseMetaData DatabaseMetaData
-   * @param tableName        Name of table
-   * @return ResultSet with index info
-   */
-  public ResultSet getIndexInfo(DatabaseMetaData databaseMetaData, String tableName) throws SQLException
-  {
-    return databaseMetaData.getIndexInfo(
-        null,
-        null,
-        tableName,  // tableName is case-sensitive in mysql default setting
-        false,
-        false
-    );
   }
 
   /**
@@ -1381,8 +1349,9 @@ public abstract class SQLMetadataConnector implements MetadataStorageConnector
     return getDBI().withHandle(handle -> {
       try {
         if (tableExists(handle, tableName)) {
+          final Connection conn = handle.getConnection();
           DatabaseMetaData dbMetaData = handle.getConnection().getMetaData();
-          ResultSet columns = dbMetaData.getColumns(null, null, tableName, columnName);
+          ResultSet columns = dbMetaData.getColumns(conn.getCatalog(), conn.getSchema(), tableName, columnName);
           return columns.next();
         } else {
           return false;
